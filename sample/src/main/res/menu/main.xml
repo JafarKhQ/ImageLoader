@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/mem_clear"
+        android:title="mem clear" />
+    <item
+        android:id="@+id/file_clear"
+        android:title="file clear" />
+
+</menu>
