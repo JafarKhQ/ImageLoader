@@ -3,6 +3,7 @@ package com.epam.imageloader;
 
 enum ImageSource {
     WEB, LOCAL, UNKNOWN;
+    private static final String PREFIX_LOCAL_FILE = "file://";
 
     private static final String[] PREFIX_WEB =
             {
@@ -12,7 +13,7 @@ enum ImageSource {
 
     private static final String[] PREFIX_LOCAL =
             {
-                    "file:///",
+                    PREFIX_LOCAL_FILE + "/",
                     "/"
             };
 
@@ -35,5 +36,13 @@ enum ImageSource {
         }
 
         return false;
+    }
+
+    static String removeScheme(String where) {
+        if (where.startsWith(PREFIX_LOCAL_FILE)) {
+            where = where.substring(PREFIX_LOCAL_FILE.length());
+        }
+
+        return where;
     }
 }

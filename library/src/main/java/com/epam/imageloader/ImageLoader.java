@@ -70,11 +70,11 @@ public class ImageLoader {
         return sInstance;
     }
 
-    public void clearMemoryCache(){
+    public void clearMemoryCache() {
         mMemoryCache.clear();
     }
 
-    public void clearDiskCache(){
+    public void clearDiskCache() {
         mFileCache.clear();
     }
 
@@ -98,8 +98,9 @@ public class ImageLoader {
                 return new ImageRequest(url);
             }
         } else if (ImageSource.LOCAL == source) {
+            where = ImageSource.removeScheme(where);
             File file = new File(where);
-            if (file.exists() && file.canRead()) {
+            if (null != file && file.exists() && file.canRead()) {
                 return new ImageRequest(file);
             } else {
                 throw new IllegalArgumentException("File cant be accessed " + where);
