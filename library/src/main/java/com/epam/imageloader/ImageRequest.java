@@ -32,7 +32,9 @@ public class ImageRequest {
     private boolean mMemoryCache;
 
     private Object mOldTag;
+    private File mTargetFile;
     private ImageView mTargetView;
+
     private ImageSource mImageSource;
     private int mTargetWidth, mTargetHeight;
 
@@ -100,12 +102,25 @@ public class ImageRequest {
     }
 
     public void into(ImageView targetView) {
+        if (null == targetView) {
+            throw new NullPointerException("null == targetView");
+        }
+
         targetView.setImageBitmap(null);
         mOldTag = targetView.getTag();
         targetView.setTag(getCacheName());
 
         mTargetView = targetView;
 
+        ImageLoader.sExecutorService.submit(new ImageGetter(this));
+    }
+
+    public void into(File file) {
+        if (null == file) {
+            throw new NullPointerException("null == file");
+        }
+
+        mTargetFile = file;
         ImageLoader.sExecutorService.submit(new ImageGetter(this));
     }
 
@@ -127,6 +142,10 @@ public class ImageRequest {
 
     ImageView getTargetView() {
         return mTargetView;
+    }
+
+    File getTargetFile() {
+        return mTargetFile;
     }
 
     ImageSource getImageSource() {

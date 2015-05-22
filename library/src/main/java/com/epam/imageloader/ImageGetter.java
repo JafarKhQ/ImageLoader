@@ -6,7 +6,11 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 
 
@@ -27,6 +31,27 @@ class ImageGetter implements Runnable {
 
     @Override
     public void run() {
+        if (null != mRequest.getTargetView()) {
+            loadToView();
+        } else if (null != mRequest.getTargetFile()) {
+            loadToFile();
+        }
+    }
+
+    private void loadToFile() {
+        ImageSource source = mRequest.getImageSource();
+        switch (source) {
+            case WEB:
+                downloadFile();
+                break;
+
+            case LOCAL:
+                loadFile();
+                break;
+        }
+    }
+
+    private void loadToView() {
         if (mRequest.isRecycled()) {
             return;
         }
@@ -125,6 +150,32 @@ class ImageGetter implements Runnable {
         return bitmap;
     }
 
+    private void downloadFile() {
+        OutputStream os = null;
+        HttpURLConnection httpConnection = null;
+
+        try {
+            Log.i(TAG, "Downloading image " + mRequest.getUrl().toString());
+            httpConnection = (HttpURLConnection) mRequest.getUrl().openConnection();
+
+            InputStream is = httpConnection.getInputStream();
+            os = new FileOutputStream(mRequest.getTargetFile());
+            StreamUtils.copyStream(is, os);
+        } catch (Exception e) {
+            Log.e(TAG, "downloadImage: " + e.getMessage());
+        } finally {
+            if (null != os) {
+                try {
+                    os.close();
+                } catch (IOException e) {
+                }
+            }
+            if (null != httpConnection) {
+                httpConnection.disconnect();
+            }
+        }
+    }
+
     private Bitmap loadImage() {
         File imageFile = mRequest.getTempFile();
         if (null == imageFile) {
@@ -141,6 +192,32 @@ class ImageGetter implements Runnable {
                 mRequest.getTargetWidth(), mRequest.getTargetHeight());
 
         return BitmapFactory.decodeFile(imageFile.getAbsolutePath(), options);
+    }
+
+    private void loadFile() {
+        InputStream is = null;
+        OutputStream os = null;
+        try {
+            is = new FileInputStream(mRequest.getFile());
+            os = new FileOutputStream(mRequest.getTargetFile());
+            StreamUtils.copyStream(is, os);
+        } catch (Exception e) {
+            Log.e(TAG, "loadFile: " + e.getMessage());
+        } finally {
+            if (null != is) {
+                try {
+                    is.close();
+                } catch (IOException e) {
+                }
+            }
+
+            if (null != os) {
+                try {
+                    os.close();
+                } catch (IOException e) {
+                }
+            }
+        }
     }
 
     private static class ImageSetter implements Runnable {
