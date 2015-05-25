@@ -39,19 +39,41 @@ class ImageGetter implements Runnable {
     }
 
     private void loadToFile() {
+        boolean result = false;
         ImageSource source = mRequest.getImageSource();
+        final ImageRequest.OnLoadFileListener onLoadFileListener = mRequest.getFileListener();
         switch (source) {
             case WEB:
-                downloadFile();
+                result = downloadFile();
                 break;
 
             case LOCAL:
-                loadFile();
+                result = loadFile();
                 break;
+        }
+
+        if (null != onLoadFileListener) {
+            if (true == result) {
+                ImageLoader.sUiHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onLoadFileListener.onFileSuccess(mRequest.getFile().getAbsolutePath(),
+                                mRequest.getTargetFile());
+                    }
+                });
+            } else {
+                ImageLoader.sUiHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        onLoadFileListener.onFileFailed(mRequest.getFile().getAbsolutePath());
+                    }
+                });
+            }
         }
     }
 
     private void loadToView() {
+        final ImageRequest.OnLoadBitmapListener onLoadBitmapListener = mRequest.getBitmapListener();
         if (mRequest.isRecycled()) {
             return;
         }
@@ -150,7 +172,8 @@ class ImageGetter implements Runnable {
         return bitmap;
     }
 
-    private void downloadFile() {
+    private boolean downloadFile() {
+        boolean success = false;
         OutputStream os = null;
         HttpURLConnection httpConnection = null;
 
@@ -161,6 +184,8 @@ class ImageGetter implements Runnable {
             InputStream is = httpConnection.getInputStream();
             os = new FileOutputStream(mRequest.getTargetFile());
             StreamUtils.copyStream(is, os);
+
+            success = true;
         } catch (Exception e) {
             Log.e(TAG, "downloadImage: " + e.getMessage());
         } finally {
@@ -174,6 +199,8 @@ class ImageGetter implements Runnable {
                 httpConnection.disconnect();
             }
         }
+
+        return success;
     }
 
     private Bitmap loadImage() {
@@ -194,13 +221,16 @@ class ImageGetter implements Runnable {
         return BitmapFactory.decodeFile(imageFile.getAbsolutePath(), options);
     }
 
-    private void loadFile() {
+    private boolean loadFile() {
+        boolean success = false;
         InputStream is = null;
         OutputStream os = null;
         try {
             is = new FileInputStream(mRequest.getFile());
             os = new FileOutputStream(mRequest.getTargetFile());
             StreamUtils.copyStream(is, os);
+
+            success = true;
         } catch (Exception e) {
             Log.e(TAG, "loadFile: " + e.getMessage());
         } finally {
@@ -218,7 +248,18 @@ class ImageGetter implements Runnable {
                 }
             }
         }
+
+        return success;
     }
+
+//    private OutputStream streamTheSource(){
+//        ImageSource source = mRequest.getImageSource();
+//        if(ImageSource.WEB==source){
+//
+//        }else if(ImageSource.LOCAL==source){
+//
+//        }
+//    }
 
     private static class ImageSetter implements Runnable {
 

@@ -1,6 +1,7 @@
 package com.epam.imageloader;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;

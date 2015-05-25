@@ -1,5 +1,6 @@
 package com.epam.imageloader;
 
+import android.graphics.Bitmap;
 import android.widget.ImageView;
 
 import java.io.File;
@@ -22,6 +23,18 @@ public class ImageRequest {
         }
     }
 
+    public interface OnLoadBitmapListener {
+        void onBitmapSuccess(String where, Bitmap bitmap);
+
+        void onBitmapFailed(String where);
+    }
+
+    public interface OnLoadFileListener {
+        void onFileSuccess(String where, File file);
+
+        void onFileFailed(String where);
+    }
+
     private URL mUrl;
     private File mFile;
 
@@ -37,6 +50,9 @@ public class ImageRequest {
 
     private ImageSource mImageSource;
     private int mTargetWidth, mTargetHeight;
+
+    private OnLoadBitmapListener mBitmapListener;
+    private OnLoadFileListener mFileListener;
 
     ImageRequest(URL url) {
         mUrl = url;
@@ -115,12 +131,13 @@ public class ImageRequest {
         ImageLoader.sExecutorService.submit(new ImageGetter(this));
     }
 
-    public void into(File file) {
+    public void into(File file, OnLoadFileListener fileListener) {
         if (null == file) {
             throw new NullPointerException("null == file");
         }
 
         mTargetFile = file;
+        mFileListener = fileListener;
         ImageLoader.sExecutorService.submit(new ImageGetter(this));
     }
 
@@ -180,14 +197,29 @@ public class ImageRequest {
     }
 
     boolean isRecycled() {
+        if (null == mTargetView) {
+            return false;
+        }
+
         return (false == getCacheName().equals(mTargetView.getTag()));
     }
 
     void resetTag() {
+        if (null == mTargetView) {
+            return;
+        }
+
         mTargetView.setTag(mOldTag);
         mOldTag = null;
     }
 
+    public OnLoadFileListener getFileListener() {
+        return mFileListener;
+    }
+
+    public OnLoadBitmapListener getBitmapListener() {
+        return mBitmapListener;
+    }
 
     private String toHexString(byte[] raw) {
         final StringBuilder hex = new StringBuilder(2 * raw.length);
