@@ -24,15 +24,15 @@ public class ImageRequest {
     }
 
     public interface OnLoadBitmapListener {
-        void onBitmapSuccess(String where, Bitmap bitmap);
+        void onBitmapSuccess(Bitmap bitmap);
 
-        void onBitmapFailed(String where);
+        void onBitmapFailed();
     }
 
     public interface OnLoadFileListener {
-        void onFileSuccess(String where, File file);
+        void onFileSuccess(File file);
 
-        void onFileFailed(String where);
+        void onFileFailed();
     }
 
     private URL mUrl;
@@ -48,6 +48,7 @@ public class ImageRequest {
     private File mTargetFile;
     private ImageView mTargetView;
 
+    private ImageTarget mImageTarget;
     private ImageSource mImageSource;
     private int mTargetWidth, mTargetHeight;
 
@@ -122,6 +123,7 @@ public class ImageRequest {
             throw new NullPointerException("null == targetView");
         }
 
+        mImageTarget = ImageTarget.VIEW;
         targetView.setImageBitmap(null);
         mOldTag = targetView.getTag();
         targetView.setTag(getCacheName());
@@ -136,6 +138,7 @@ public class ImageRequest {
             throw new NullPointerException("null == file");
         }
 
+        mImageTarget = ImageTarget.FILE;
         mTargetFile = file;
         mFileListener = fileListener;
         ImageLoader.sExecutorService.submit(new ImageGetter(this));
@@ -167,6 +170,10 @@ public class ImageRequest {
 
     ImageSource getImageSource() {
         return mImageSource;
+    }
+
+    ImageTarget getImageTarget() {
+        return mImageTarget;
     }
 
     int getTargetWidth() {

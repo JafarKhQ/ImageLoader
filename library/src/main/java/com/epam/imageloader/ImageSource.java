@@ -2,7 +2,10 @@ package com.epam.imageloader;
 
 
 enum ImageSource {
-    WEB, LOCAL, UNKNOWN;
+    WEB,
+    LOCAL,
+    UNKNOWN;
+
     private static final String PREFIX_LOCAL_FILE = "file://";
 
     private static final String[] PREFIX_WEB =
