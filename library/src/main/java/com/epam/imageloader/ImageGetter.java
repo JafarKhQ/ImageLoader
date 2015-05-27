@@ -41,7 +41,7 @@ class ImageGetter implements Runnable {
                 return;
             }
 
-            if (ImageTarget.FILE != imageTarget) {
+            if (true == mRequest.isCacheEnabled() && ImageTarget.FILE != imageTarget) {
                 resultBitmap = fromCache();
                 if (null != resultBitmap) {
                     /*
@@ -151,16 +151,13 @@ class ImageGetter implements Runnable {
         ImageSource source = request.getImageSource();
 
         if (ImageSource.WEB == source) {
-            Log.i(TAG, "Downloading image " + request.getUrl().toString());
+            Log.i(TAG, "Downloading Image: " + request.getUrl().toString());
             HttpURLConnection httpConnection = (HttpURLConnection) request.getUrl().openConnection();
 
             is = httpConnection.getInputStream();
         } else if (ImageSource.LOCAL == source) {
-            File imageFile = request.getTempFile();
-            if (null == imageFile) {
-                imageFile = request.getFile();
-            }
-
+            File imageFile = request.getFile();
+            Log.i(TAG, "Loading Image: " + imageFile.getAbsolutePath());
             is = new FileInputStream(imageFile);
         }
 

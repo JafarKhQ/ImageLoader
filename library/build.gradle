@@ -10,14 +10,21 @@ android {
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
+            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        debug {
+            debuggable true
+            minifyEnabled false
         }
     }
 }
 
 dependencies {
-
+    compile 'com.android.support:support-annotations:22.1.1'
 }
