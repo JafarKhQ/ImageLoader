@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 
 public class ImageLoader {
     private static final String TAG = "ImageLoader";
+    private static final int MEMORY_CACHE_MULTIPLIER = 5;
     private static final Object mLock = new Object();
 
     static ImageLoader sInstance;
@@ -58,7 +59,7 @@ public class ImageLoader {
         mAppContext = context.getApplicationContext();
 
         mFileCache = new FileCache(mAppContext);
-        mMemoryCache = new MemoryCache();
+        mMemoryCache = new MemoryCache(MemoryCache.getAppHeap(mAppContext) / MEMORY_CACHE_MULTIPLIER); // 1/5=20%
     }
 
     public ImageLoader setGlobalDiskCache(boolean diskCache) {
