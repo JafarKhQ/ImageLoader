@@ -27,8 +27,8 @@ class MemoryCache {
 
         mSize = 0;
         mMaxSize = maxSize;
-        mMap = new LinkedHashMap<>(0, 0.75f, true);
         mKeys = new LinkedList<>();
+        mMap = new LinkedHashMap<>(0, 0.75f, true);
     }
 
     Bitmap add(@NonNull Bitmap bitmap, @NonNull String fileName) {
