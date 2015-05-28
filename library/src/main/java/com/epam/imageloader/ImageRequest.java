@@ -1,6 +1,8 @@
 package com.epam.imageloader;
 
 import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.widget.ImageView;
 
 import java.io.File;
@@ -23,22 +25,25 @@ public class ImageRequest {
         }
     }
 
-    public interface OnLoadBitmapListener {
-        void onBitmapSuccess(String where, Bitmap bitmap);
+    public boolean isCacheEnabled() {
+        return true == mDiskCache || true == mMemoryCache;
+    }
 
-        void onBitmapFailed(String where);
+    public interface OnLoadBitmapListener {
+        void onBitmapSuccess(Bitmap bitmap);
+
+        void onBitmapFailed();
     }
 
     public interface OnLoadFileListener {
-        void onFileSuccess(String where, File file);
+        void onFileSuccess(File file);
 
-        void onFileFailed(String where);
+        void onFileFailed();
     }
 
     private URL mUrl;
     private File mFile;
 
-    private File mTempFile;
     private String mCacheName;
 
     private boolean mDiskCache;
@@ -48,20 +53,21 @@ public class ImageRequest {
     private File mTargetFile;
     private ImageView mTargetView;
 
+    private ImageTarget mImageTarget;
     private ImageSource mImageSource;
     private int mTargetWidth, mTargetHeight;
 
     private OnLoadBitmapListener mBitmapListener;
     private OnLoadFileListener mFileListener;
 
-    ImageRequest(URL url) {
+    ImageRequest(@NonNull URL url) {
         mUrl = url;
         mImageSource = ImageSource.WEB;
 
         init();
     }
 
-    ImageRequest(File file) {
+    ImageRequest(@NonNull File file) {
         mFile = file;
         mImageSource = ImageSource.LOCAL;
 
@@ -117,11 +123,12 @@ public class ImageRequest {
         return this;
     }
 
-    public void into(ImageView targetView) {
+    public void into(@NonNull ImageView targetView) {
         if (null == targetView) {
             throw new NullPointerException("null == targetView");
         }
 
+        mImageTarget = ImageTarget.VIEW;
         targetView.setImageBitmap(null);
         mOldTag = targetView.getTag();
         targetView.setTag(getCacheName());
@@ -131,22 +138,25 @@ public class ImageRequest {
         ImageLoader.sExecutorService.submit(new ImageGetter(this));
     }
 
-    public void into(File file, OnLoadFileListener fileListener) {
+    public void into(@NonNull File file, @Nullable OnLoadFileListener fileListener) {
         if (null == file) {
             throw new NullPointerException("null == file");
         }
 
+        mImageTarget = ImageTarget.FILE;
         mTargetFile = file;
         mFileListener = fileListener;
         ImageLoader.sExecutorService.submit(new ImageGetter(this));
     }
 
-    void setTempFile(File tempFile) {
-        mTempFile = tempFile;
-    }
+    public void into(@NonNull OnLoadBitmapListener bitmapListener) {
+        if (null == bitmapListener) {
+            throw new NullPointerException("null == bitmapListener");
+        }
 
-    File getTempFile() {
-        return mTempFile;
+        mImageTarget = ImageTarget.MEMORY;
+        mBitmapListener = bitmapListener;
+        ImageLoader.sExecutorService.submit(new ImageGetter(this));
     }
 
     URL getUrl() {
@@ -169,6 +179,10 @@ public class ImageRequest {
         return mImageSource;
     }
 
+    ImageTarget getImageTarget() {
+        return mImageTarget;
+    }
+
     int getTargetWidth() {
         return mTargetWidth;
     }
@@ -183,13 +197,6 @@ public class ImageRequest {
 
     boolean isMemoryCache() {
         return mMemoryCache;
-    }
-
-    void deleteTemp() {
-        if (null != mTempFile) {
-            mTempFile.delete();
-            mTempFile = null;
-        }
     }
 
     String getCacheName() {
@@ -221,6 +228,7 @@ public class ImageRequest {
         return mBitmapListener;
     }
 
+    @NonNull
     private String toHexString(byte[] raw) {
         final StringBuilder hex = new StringBuilder(2 * raw.length);
 

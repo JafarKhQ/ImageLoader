@@ -1,9 +1,9 @@
 package com.epam.imageloader;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.io.File;
@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 
 public class ImageLoader {
     private static final String TAG = "ImageLoader";
+    private static final int MEMORY_CACHE_MULTIPLIER = 5;
     private static final Object mLock = new Object();
 
     static ImageLoader sInstance;
@@ -33,7 +34,7 @@ public class ImageLoader {
         }
     }
 
-    public static ImageLoader getInstance(Context context) {
+    public static ImageLoader getInstance(@NonNull Context context) {
         if (null == sInstance) {
             synchronized (mLock) {
                 if (null == sInstance) {
@@ -52,13 +53,13 @@ public class ImageLoader {
     private FileCache mFileCache;
     private MemoryCache mMemoryCache;
 
-    private ImageLoader(Context context) {
+    private ImageLoader(@NonNull Context context) {
         mUseDiskCache = true;
         mUseMemoryCache = true;
         mAppContext = context.getApplicationContext();
 
         mFileCache = new FileCache(mAppContext);
-        mMemoryCache = new MemoryCache();
+        mMemoryCache = new MemoryCache(MemoryCache.getAppHeap(mAppContext) / MEMORY_CACHE_MULTIPLIER); // 1/5=20%
     }
 
     public ImageLoader setGlobalDiskCache(boolean diskCache) {
@@ -79,7 +80,7 @@ public class ImageLoader {
         mFileCache.clear();
     }
 
-    public ImageRequest from(String where) {
+    public ImageRequest from(@NonNull String where) {
         if (null == where) {
             throw new IllegalArgumentException("where cant be null");
         }

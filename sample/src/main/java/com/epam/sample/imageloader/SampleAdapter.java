@@ -63,7 +63,7 @@ public class SampleAdapter extends BaseAdapter {
             imv = (ImageView) convertView;
         }
 
-        loader.from(URLS[position]).memoryCache(false).diskCache(false).into(imv);
+        loader.from(URLS[position]).memoryCache(false).diskCache(true).into(imv);
 
         return imv;
     }
