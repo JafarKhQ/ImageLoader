@@ -58,7 +58,7 @@ public class ImageLoader {
         mUseMemoryCache = true;
         mAppContext = context.getApplicationContext();
 
-        mFileCache = new FileCache(mAppContext);
+        mFileCache = new FileCache(mAppContext, 0);
         mMemoryCache = new MemoryCache(MemoryCache.getAppHeap(mAppContext) / MEMORY_CACHE_MULTIPLIER); // 1/5=20%
     }
 
